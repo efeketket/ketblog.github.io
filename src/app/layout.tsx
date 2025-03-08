@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "./components/ThemeProvider";
+import { ThemeProvider } from "next-themes";
 import ThemeToggle from "./components/ThemeToggle";
 import Header from "./components/Header";
+import { ViewModeProvider } from './contexts/ViewModeContext';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,11 +21,13 @@ export default function RootLayout({
   return (
     <html lang="tr" suppressHydrationWarning>
       <body className={`${inter.className} bg-white dark:bg-gray-900 transition-colors duration-300`}>
-        <ThemeProvider>
-          <Header />
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {children}
-          </main>
+        <ThemeProvider attribute="class">
+          <ViewModeProvider>
+            <Header />
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              {children}
+            </main>
+          </ViewModeProvider>
         </ThemeProvider>
       </body>
     </html>

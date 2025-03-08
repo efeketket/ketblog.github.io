@@ -4,6 +4,17 @@ import { verifyToken } from './app/lib/auth';
 
 export function middleware(request: NextRequest) {
   // Admin sayfalarını kontrol et
+  if (request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.includes('/login')) {
+    // Admin email'ini cookie'den kontrol et
+    const adminEmail = request.cookies.get('adminEmail');
+    
+    if (!adminEmail) {
+      // Admin girişi yapılmamışsa login sayfasına yönlendir
+      return NextResponse.redirect(new URL('/admin/login', request.url));
+    }
+  }
+
+  // Admin sayfalarını kontrol et
   if (request.nextUrl.pathname.startsWith('/admin')) {
     const token = request.cookies.get('token')?.value;
 

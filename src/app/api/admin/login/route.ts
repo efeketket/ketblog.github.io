@@ -1,65 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { createToken } from '@/app/lib/auth';
+import { createToken, generateToken } from '@/app/lib/auth';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { sign } from 'jsonwebtoken';
 
-export async function POST(req: NextRequest) {
+const ADMIN_EMAIL = 'admin@example.com';
+const ADMIN_PASSWORD = 'admin123';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // Gerçek uygulamada environment variable kullanılmalı
+
+export async function POST(request: Request) {
   try {
-    const { email, password } = await req.json();
-    console.log('Giriş isteği alındı:', email);
+    const { email, password } = await request.json();
 
-    // Kullanıcıyı bul
-    const user = await prisma.user.findUnique({
-      where: { email }
-    });
-
-    if (!user) {
-      console.log('Kullanıcı bulunamadı:', email);
+    if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
       return NextResponse.json(
-        { error: 'Geçersiz e-posta veya şifre' },
+        { error: 'Geçersiz email veya şifre' },
         { status: 401 }
       );
     }
-
-    // Şifreyi kontrol et
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      console.log('Geçersiz şifre:', email);
-      return NextResponse.json(
-        { error: 'Geçersiz e-posta veya şifre' },
-        { status: 401 }
-      );
-    }
-
-    console.log('Giriş başarılı:', email);
 
     // Token oluştur
-    const token = createToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role
-    });
+    const token = generateToken(email);
 
-    console.log('Token oluşturuldu');
+    // Response oluştur ve cookie'leri ayarla
+    const response = NextResponse.json(
+      { message: 'Giriş başarılı' },
+      { status: 200 }
+    );
 
-    // Cookie'yi ayarla ve yanıt döndür
-    const response = NextResponse.json({ 
-      success: true,
-      message: 'Giriş başarılı'
-    });
-
+    // Cookie'leri ayarla (30 gün)
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
     response.cookies.set('token', token, {
-      httpOnly: true,
       path: '/',
-      maxAge: 60 * 60 * 24 // 1 gün
+      maxAge: thirtyDays,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
     });
 
-    console.log('Cookie ayarlandı, yanıt dönülüyor');
+    response.cookies.set('adminEmail', email, {
+      path: '/',
+      maxAge: thirtyDays,
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+    });
+
     return response;
   } catch (error) {
-    console.error('Giriş hatası:', error);
+    console.error('Login hatası:', error);
     return NextResponse.json(
-      { error: 'Giriş yapılırken bir hata oluştu' },
+      { error: 'Giriş işlemi başarısız' },
       { status: 500 }
     );
   }

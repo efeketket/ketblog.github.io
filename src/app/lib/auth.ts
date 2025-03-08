@@ -1,8 +1,9 @@
 import { NextRequest } from 'next/server';
 import * as jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
+import { verify } from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export interface JWTPayload {
   userId: string;
@@ -14,12 +15,30 @@ export function createToken(payload: JWTPayload): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
 }
 
-export function verifyToken(token: string): JWTPayload {
+export interface TokenPayload {
+  email: string;
+  role: string;
+  exp: number;
+}
+
+export function verifyToken(token: string): TokenPayload {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
-  } catch {
-    throw new Error('Invalid token');
+    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
+    return decoded;
+  } catch (error) {
+    throw new Error('Geçersiz token');
   }
+}
+
+export function generateToken(email: string): string {
+  return jwt.sign(
+    { 
+      email, 
+      role: 'admin',
+      exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60) // 30 gün
+    },
+    JWT_SECRET
+  );
 }
 
 export function getTokenFromRequest(req: NextRequest) {
