@@ -1,63 +1,79 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import ThemeToggle from './ThemeToggle';
 import Link from 'next/link';
-import { FiLogOut } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { FiSun, FiMoon } from 'react-icons/fi';
+import { useTheme } from 'next-themes';
 
 export default function Header() {
-  const [adminEmail, setAdminEmail] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const { theme, setTheme } = useTheme();
   const router = useRouter();
 
   useEffect(() => {
-    const email = localStorage.getItem('adminEmail');
-    if (email) {
-      setAdminEmail(email);
-    }
+    const checkAdminStatus = () => {
+      const adminEmail = localStorage.getItem('adminEmail');
+      setIsAdmin(!!adminEmail);
+    };
+
+    checkAdminStatus();
+    setMounted(true);
+    window.addEventListener('storage', checkAdminStatus);
+    return () => window.removeEventListener('storage', checkAdminStatus);
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('adminEmail');
-    setAdminEmail(null);
-    // Cookie'yi temizle
     document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    // Sayfayı yenile
-    router.refresh();
+    window.dispatchEvent(new Event('storage'));
+    router.push('/');
   };
 
+  if (!mounted) {
+    return null;
+  }
+
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex-shrink-0">
-            <Link href="/" className="text-2xl font-bold text-gray-800 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-              Ketket's Developments
-            </Link>
-          </div>
+          <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
+            Blog
+          </Link>
+
           <div className="flex items-center gap-4">
-            {adminEmail ? (
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              {theme === 'dark' ? <FiSun size={20} /> : <FiMoon size={20} />}
+            </button>
+
+            {isAdmin ? (
               <div className="flex items-center gap-4">
-                <div className="text-sm text-gray-600 dark:text-gray-300">
-                  {adminEmail}
-                </div>
+                <Link
+                  href="/admin/dashboard"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400"
+                >
+                  Admin
+                </Link>
                 <button
                   onClick={handleLogout}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 rounded-md transition-colors duration-200"
+                  className="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                 >
-                  <FiLogOut className="w-4 h-4" />
-                  <span>Çıkış Yap</span>
+                  Çıkış Yap
                 </button>
               </div>
             ) : (
-              <Link 
-                href="/admin/login" 
-                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 rounded-md transition-colors duration-200"
+              <Link
+                href="/admin/login"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400"
               >
-                Admin Girişi
+                Giriş Yap
               </Link>
             )}
-            <ThemeToggle />
           </div>
         </div>
       </div>

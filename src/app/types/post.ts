@@ -1,16 +1,15 @@
 export interface Post {
-  id: number;
+  slug: string;
   title: string;
   description: string;
   content: string;
-  slug: string;
-  readTime: number;
+  coverImage?: string;
+  author: {
+    name: string;
+    avatar?: string;
+    bio?: string;
+  };
   tags: string[];
   createdAt: string;
   updatedAt: string;
-  author: {
-    name: string;
-    avatar: string;
-  };
-  views: number;
 } 
