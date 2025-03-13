@@ -5,7 +5,7 @@ const nextConfig = {
     unoptimized: true
   },
   experimental: {
-    serverComponentsExternalPackages: ['jsonwebtoken']
+    serverComponentsExternalPackages: ['jsonwebtoken', 'jws']
   }
 }
 

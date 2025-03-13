@@ -90,8 +90,8 @@ export default function BlogPost({ post }: BlogPostProps) {
       <div className="flex items-center gap-6 mb-4 text-sm text-gray-500 dark:text-gray-400">
         <div className="flex items-center gap-2">
           <div className="relative w-6 h-6 rounded-full overflow-hidden">
-            <Image 
-              src={post.author.avatar} 
+            <Image
+              src={post.author.avatar || '/images/default-avatar.png'}
               alt={post.author.name}
               fill
               className="object-cover"

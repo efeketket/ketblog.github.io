@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
       author: author || { name: 'Admin' },
       tags,
       views: 0,
+      trendScore: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
