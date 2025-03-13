@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
       coverImage,
       author: author || { name: 'Admin' },
       tags,
+      views: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
