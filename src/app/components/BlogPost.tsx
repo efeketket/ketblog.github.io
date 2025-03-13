@@ -99,7 +99,8 @@ export default function BlogPost({ post }: BlogPostProps) {
             <Image
               src={post.author.avatar || '/images/default-avatar.png'}
               alt={post.author.name}
-              fill
+              width={24}
+              height={24}
               className="object-cover"
             />
           </div>
