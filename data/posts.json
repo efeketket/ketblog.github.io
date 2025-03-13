@@ -22,7 +22,9 @@
         "Web Geliştirme"
       ],
       "createdAt": "2024-03-15T10:00:00Z",
-      "updatedAt": "2025-03-08T16:52:36.334Z"
+      "updatedAt": "2025-03-08T16:52:36.334Z",
+      "views": 1,
+      "trendScore": 0.002793296089385475
     },
     {
       "slug": "typescript-ile-guvenli-kod-yazimi",
@@ -102,7 +104,9 @@
         "Microservices"
       ],
       "createdAt": "2024-03-11T11:20:00Z",
-      "updatedAt": "2024-03-11T11:20:00Z"
+      "updatedAt": "2024-03-11T11:20:00Z",
+      "views": 1,
+      "trendScore": 0.0027624309392265192
     },
     {
       "title": "React ve Next.js ile Modern Web Geliştirme",

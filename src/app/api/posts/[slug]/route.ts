@@ -16,7 +16,15 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(post);
+    // Görüntülenme sayısını artır
+    const updatedPost = {
+      ...post,
+      views: (post.views || 0) + 1,
+      trendScore: calculateTrendScore(post.views || 0, post.createdAt)
+    };
+
+    await savePost(updatedPost);
+    return NextResponse.json(updatedPost);
   } catch (error) {
     return NextResponse.json(
       { error: 'Blog yazısı alınırken bir hata oluştu' },
@@ -51,7 +59,9 @@ export async function PUT(
     const updatedPost = await savePost({
       ...existingPost,
       ...data,
-      slug: params.slug, // slug değişmemeli
+      slug: params.slug,
+      views: existingPost.views || 0,
+      trendScore: calculateTrendScore(existingPost.views || 0, existingPost.createdAt),
       updatedAt: new Date().toISOString()
     });
 
@@ -93,4 +103,18 @@ export async function DELETE(
       { status: 500 }
     );
   }
+}
+
+function calculateTrendScore(views: number, createdAt: string): number {
+  const now = new Date();
+  const created = new Date(createdAt);
+  const daysSinceCreation = Math.max(1, Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24)));
+  
+  // Son 7 gün içindeyse trend skorunu hesapla
+  if (daysSinceCreation <= 7) {
+    return views / daysSinceCreation;
+  }
+  
+  // 7 günden eskiyse trend skorunu azalt
+  return (views / daysSinceCreation) * 0.5;
 } 

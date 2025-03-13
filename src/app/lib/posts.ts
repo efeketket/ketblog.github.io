@@ -2,6 +2,7 @@
 
 import { promises as fs } from 'node:fs';
 import path from 'path';
+import { formatCoverImagePath } from './utils';
 
 const postsFile = path.join(process.cwd(), 'data', 'posts.json');
 const DEFAULT_AVATAR = 'https://github.com/identicons/default.png';
@@ -37,6 +38,8 @@ export interface Post {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  views: number;
+  trendScore?: number;
 }
 
 // Posts dosyasını oluştur (eğer yoksa)
@@ -71,17 +74,49 @@ export async function getPosts(): Promise<Post[]> {
 export async function getPostBySlug(slug: string): Promise<Post | null> {
   try {
     const posts = await getPosts();
-    return posts.find((post: Post) => post.slug === slug) || null;
+    const post = posts.find((post: Post) => post.slug === slug);
+    
+    if (post) {
+      // Görüntülenme sayısını artır
+      post.views = (post.views || 0) + 1;
+      // Trend skorunu güncelle
+      post.trendScore = calculateTrendScore(post.views, post.createdAt);
+      await savePost(post);
+    }
+    
+    return post || null;
   } catch (error) {
     console.error('Blog yazısı alınırken hata:', error);
     return null;
   }
 }
 
+// Trend skorunu hesapla
+function calculateTrendScore(views: number, createdAt: string): number {
+  const now = new Date();
+  const postDate = new Date(createdAt);
+  const daysSinceCreation = Math.max(1, Math.floor((now.getTime() - postDate.getTime()) / (1000 * 60 * 60 * 24)));
+  
+  // Son 7 gün içindeki postlar için ek ağırlık
+  const recencyBonus = daysSinceCreation <= 7 ? 1.5 : 1;
+  
+  // Günlük ortalama görüntülenme * recencyBonus
+  return (views / daysSinceCreation) * recencyBonus;
+}
+
 export async function savePost(post: Post): Promise<Post> {
   try {
     const posts = await getPosts();
     const existingPostIndex = posts.findIndex((p: Post) => p.slug === post.slug);
+
+    // Kapak resmini formatla
+    if (post.coverImage) {
+      post.coverImage = formatCoverImagePath(post.coverImage);
+    }
+
+    // Görüntülenme sayısını ve trend skorunu kontrol et
+    post.views = post.views || 0;
+    post.trendScore = calculateTrendScore(post.views, post.createdAt);
 
     if (existingPostIndex >= 0) {
       posts[existingPostIndex] = post;

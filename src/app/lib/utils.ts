@@ -13,4 +13,19 @@ export function formatDate(dateString: string): string {
     month: 'long',
     day: 'numeric'
   });
+}
+
+// Kapak resmi yolunu formatla
+export function formatCoverImagePath(imagePath: string): string {
+  if (!imagePath) return '';
+  
+  // Base64 görüntüler için dokunma
+  if (imagePath.startsWith('data:')) return imagePath;
+  
+  // URL'ler için dokunma
+  if (imagePath.startsWith('http')) return imagePath;
+  
+  // Yerel dosya yollarını düzenle
+  const fileName = imagePath.split('/').pop();
+  return `/images/covers/${fileName}`;
 } 

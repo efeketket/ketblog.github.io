@@ -12,4 +12,6 @@ export interface Post {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  views: number;
+  trendScore?: number; // Son 7 gündeki görüntülenme/gün oranı
 } 

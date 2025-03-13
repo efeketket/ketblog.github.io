@@ -3,7 +3,7 @@
 import { Post } from '@/app/types/post';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FiClock, FiCalendar, FiEdit2, FiImage } from 'react-icons/fi';
+import { FiClock, FiCalendar, FiEdit2, FiImage, FiEye } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
 import { calculateReadTime, formatDate } from '@/app/lib/utils';
 
@@ -80,6 +80,10 @@ export default function BlogPostCard({ post, viewMode }: BlogPostCardProps) {
               </div>
               <span className="text-sm text-gray-600 dark:text-gray-400">{post.author.name}</span>
             </div>
+            <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+              <FiClock className="w-4 h-4" />
+              <span>{readTime} dk</span>
+            </div>
           </div>
 
           <Link href={`/blog/${post.slug}`}>
@@ -108,18 +112,16 @@ export default function BlogPostCard({ post, viewMode }: BlogPostCardProps) {
           </div>
 
           <div className={`mt-auto flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 ${
-            isCompact ? 'justify-start' : 'justify-between'
+            isCompact ? 'justify-between' : 'justify-between'
           }`}>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                <FiCalendar className="w-4 h-4" />
-                <span>{formattedDate}</span>
-              </div>
+            <div className="flex items-center gap-1">
+              <FiCalendar className="w-4 h-4" />
+              <span>{new Date(post.createdAt).toLocaleDateString('tr-TR')}</span>
+            </div>
 
-              <div className="flex items-center gap-1">
-                <FiClock className="w-4 h-4" />
-                <span>{readTime} dk okuma</span>
-              </div>
+            <div className="flex items-center gap-1">
+              <FiEye className="w-4 h-4" />
+              <span>{post.views || 0} görüntülenme</span>
             </div>
           </div>
         </div>
