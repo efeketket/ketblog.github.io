@@ -14,4 +14,5 @@ export interface Post {
   updatedAt: string;
   views: number;
   trendScore?: number; // Son 7 gündeki görüntülenme/gün oranı
+  readTime?: number;
 } 

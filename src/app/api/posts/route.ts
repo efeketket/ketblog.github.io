@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPosts, savePost, getPostBySlug, deletePost } from '@/app/lib/posts';
+import { getPosts, savePost, getPostBySlug } from '@/app/lib/posts';
+import { Post } from '@/app/types/post';
 import slugify from 'slugify';
 
 export async function GET() {
@@ -44,12 +45,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const newPost = {
+    const newPost: Post = {
       slug,
       title,
       description: description || '',
       content,
-      coverImage,
+      coverImage: coverImage || '',
       author: author || { name: 'Admin' },
       tags,
       views: 0,

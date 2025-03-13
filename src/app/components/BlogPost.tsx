@@ -62,6 +62,12 @@ export default function BlogPost({ post }: BlogPostProps) {
     return sentences.slice(0, 5).join(' ');
   };
 
+  const calculateReadTime = (content: string): number => {
+    const wordsPerMinute = 200;
+    const words = content.trim().split(/\s+/).length;
+    return Math.ceil(words / wordsPerMinute);
+  };
+
   return (
     <article 
       onClick={handleCardClick}
@@ -107,7 +113,7 @@ export default function BlogPost({ post }: BlogPostProps) {
 
         <div className="flex items-center gap-1">
           <FiClock className="w-4 h-4" />
-          <span>{post.readTime} dk okuma</span>
+          <span>{calculateReadTime(post.content)} dk okuma</span>
         </div>
 
         <div className="flex items-center gap-1">
