@@ -15,6 +15,14 @@ const nextConfig = {
       util: require.resolve('util/'),
     };
     return config;
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: '/api/:path*',
+      },
+    ];
   }
 }
 

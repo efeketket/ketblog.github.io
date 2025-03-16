@@ -3,8 +3,10 @@
 import { promises as fs } from 'node:fs';
 import path from 'path';
 import { formatCoverImagePath } from './utils';
+import { Post } from '../types/post';
 
-const postsFile = path.join(process.cwd(), 'data', 'posts.json');
+const postsDirectory = path.join(process.cwd(), 'data');
+const postsFile = path.join(postsDirectory, 'posts.json');
 const DEFAULT_AVATAR = 'https://github.com/identicons/default.png';
 
 // Okuma süresini hesapla (dakika cinsinden)
@@ -22,24 +24,6 @@ export async function formatDate(dateString: string): Promise<string> {
     month: 'long',
     day: 'numeric'
   });
-}
-
-export interface Post {
-  slug: string;
-  title: string;
-  description: string;
-  content: string;
-  coverImage?: string;
-  author: {
-    name: string;
-    avatar?: string;
-    bio?: string;
-  };
-  tags: string[];
-  createdAt: string;
-  updatedAt: string;
-  views: number;
-  trendScore?: number;
 }
 
 // Posts dosyasını oluştur (eğer yoksa)
@@ -62,33 +46,16 @@ initializePostsFile();
 
 export async function getPosts(): Promise<Post[]> {
   try {
-    const fileContent = await fs.readFile(postsFile, 'utf-8');
-    const data = JSON.parse(fileContent);
-    return Array.isArray(data.posts) ? data.posts : [];
+    const fileContents = await fs.readFile(postsFile, 'utf8');
+    return JSON.parse(fileContents);
   } catch (error) {
-    console.error('Posts okunurken hata:', error);
     return [];
   }
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | null> {
-  try {
-    const posts = await getPosts();
-    const post = posts.find((post: Post) => post.slug === slug);
-    
-    if (post) {
-      // Görüntülenme sayısını artır
-      post.views = (post.views || 0) + 1;
-      // Trend skorunu güncelle
-      post.trendScore = calculateTrendScore(post.views, post.createdAt);
-      await savePost(post);
-    }
-    
-    return post || null;
-  } catch (error) {
-    console.error('Blog yazısı alınırken hata:', error);
-    return null;
-  }
+  const posts = await getPosts();
+  return posts.find(post => post.slug === slug) || null;
 }
 
 // Trend skorunu hesapla
@@ -105,46 +72,30 @@ function calculateTrendScore(views: number, createdAt: string): number {
 }
 
 export async function savePost(post: Post): Promise<Post> {
-  try {
-    const posts = await getPosts();
-    const existingPostIndex = posts.findIndex((p: Post) => p.slug === post.slug);
+  const posts = await getPosts();
+  posts.push(post);
+  await fs.writeFile(postsFile, JSON.stringify(posts, null, 2));
+  return post;
+}
 
-    // Kapak resmini formatla
-    if (post.coverImage) {
-      post.coverImage = formatCoverImagePath(post.coverImage);
-    }
-
-    // Görüntülenme sayısını ve trend skorunu kontrol et
-    post.views = post.views || 0;
-    post.trendScore = calculateTrendScore(post.views, post.createdAt);
-
-    if (existingPostIndex >= 0) {
-      posts[existingPostIndex] = post;
-    } else {
-      posts.push(post);
-    }
-
-    await fs.writeFile(postsFile, JSON.stringify({ posts }, null, 2));
-    return post;
-  } catch (error) {
-    console.error('Post kaydedilirken hata:', error);
-    throw new Error('Post kaydedilemedi');
-  }
+export async function updatePost(slug: string, updatedPost: Partial<Post>): Promise<Post | null> {
+  const posts = await getPosts();
+  const index = posts.findIndex(post => post.slug === slug);
+  
+  if (index === -1) return null;
+  
+  posts[index] = { ...posts[index], ...updatedPost, updatedAt: new Date().toISOString() };
+  await fs.writeFile(postsFile, JSON.stringify(posts, null, 2));
+  
+  return posts[index];
 }
 
 export async function deletePost(slug: string): Promise<boolean> {
-  try {
-    const posts = await getPosts();
-    const filteredPosts = posts.filter((post: Post) => post.slug !== slug);
-    
-    if (filteredPosts.length === posts.length) {
-      return false;
-    }
-
-    await fs.writeFile(postsFile, JSON.stringify({ posts: filteredPosts }, null, 2));
-    return true;
-  } catch (error) {
-    console.error('Post silinirken hata:', error);
-    throw new Error('Post silinemedi');
-  }
+  const posts = await getPosts();
+  const filteredPosts = posts.filter(post => post.slug !== slug);
+  
+  if (filteredPosts.length === posts.length) return false;
+  
+  await fs.writeFile(postsFile, JSON.stringify(filteredPosts, null, 2));
+  return true;
 } 
