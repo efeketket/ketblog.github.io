@@ -1,29 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
   images: {
-    domains: ['images.unsplash.com', 'github.com', 'avatars.githubusercontent.com'],
-    unoptimized: true
-  },
-  experimental: {
-    serverComponentsExternalPackages: ['jsonwebtoken', 'jws']
-  },
-  webpack: (config) => {
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      crypto: require.resolve('crypto-browserify'),
-      stream: require.resolve('stream-browserify'),
-      util: require.resolve('util/'),
-    };
-    return config;
-  },
-  async rewrites() {
-    return [
+    unoptimized: true,
+    remotePatterns: [
       {
-        source: '/api/:path*',
-        destination: '/api/:path*',
+        protocol: 'https',
+        hostname: '**',
       },
-    ];
-  }
+    ],
+  },
+  trailingSlash: true,
+  distDir: 'out',
 }
 
 module.exports = nextConfig 
