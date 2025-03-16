@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { getPostBySlug } from '@/app/services/blogService';
+import { getPostBySlug } from '@/app/lib/posts';
 
 export const runtime = 'edge';
 export const alt = 'Blog Post';
