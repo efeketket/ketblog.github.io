@@ -1,4 +1,5 @@
 import { getPosts, getPostBySlug } from '@/app/lib/posts';
+import { notFound } from 'next/navigation';
 
 export async function generateStaticParams() {
   const posts = await getPosts();
@@ -11,7 +12,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
   const post = await getPostBySlug(params.slug);
   
   if (!post) {
-    return <div>Post bulunamadı</div>;
+    return notFound();
   }
 
   return (

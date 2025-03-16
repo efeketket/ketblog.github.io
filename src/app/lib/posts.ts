@@ -1,12 +1,11 @@
 'use server';
 
-import { promises as fs } from 'node:fs';
-import path from 'path';
+import fs from 'fs/promises';
+import { join } from 'path';
 import { formatCoverImagePath } from './utils';
 import { Post } from '../types/post';
 
-const postsDirectory = path.join(process.cwd(), 'data');
-const postsFile = path.join(postsDirectory, 'posts.json');
+const DATA_PATH = join(process.cwd(), 'data', 'posts.json');
 const DEFAULT_AVATAR = 'https://github.com/identicons/default.png';
 
 // Okuma süresini hesapla (dakika cinsinden)
@@ -26,15 +25,15 @@ export async function formatDate(dateString: string): Promise<string> {
   });
 }
 
-// Posts dosyasını oluştur (eğer yoksa)
+// Veri dosyasını oluştur (eğer yoksa)
 async function initializePostsFile() {
   try {
-    await fs.access(path.join(process.cwd(), 'data')).catch(async () => {
-      await fs.mkdir(path.join(process.cwd(), 'data'));
+    await fs.access(join(process.cwd(), 'data')).catch(async () => {
+      await fs.mkdir(join(process.cwd(), 'data'));
     });
 
-    await fs.access(postsFile).catch(async () => {
-      await fs.writeFile(postsFile, JSON.stringify({ posts: [] }, null, 2));
+    await fs.access(DATA_PATH).catch(async () => {
+      await fs.writeFile(DATA_PATH, JSON.stringify([], null, 2));
     });
   } catch (error) {
     console.error('Posts dosyası oluşturulurken hata:', error);
@@ -44,11 +43,13 @@ async function initializePostsFile() {
 // İlk çalıştırmada posts dosyasını oluştur
 initializePostsFile();
 
+// Basit veri işlemleri
 export async function getPosts(): Promise<Post[]> {
   try {
-    const fileContents = await fs.readFile(postsFile, 'utf8');
-    return JSON.parse(fileContents);
+    const data = await fs.readFile(DATA_PATH, 'utf8');
+    return JSON.parse(data);
   } catch (error) {
+    console.error('Posts okunurken hata:', error);
     return [];
   }
 }
@@ -74,7 +75,7 @@ function calculateTrendScore(views: number, createdAt: string): number {
 export async function savePost(post: Post): Promise<Post> {
   const posts = await getPosts();
   posts.push(post);
-  await fs.writeFile(postsFile, JSON.stringify(posts, null, 2));
+  await fs.writeFile(DATA_PATH, JSON.stringify(posts, null, 2));
   return post;
 }
 
@@ -85,7 +86,7 @@ export async function updatePost(slug: string, updatedPost: Partial<Post>): Prom
   if (index === -1) return null;
   
   posts[index] = { ...posts[index], ...updatedPost, updatedAt: new Date().toISOString() };
-  await fs.writeFile(postsFile, JSON.stringify(posts, null, 2));
+  await fs.writeFile(DATA_PATH, JSON.stringify(posts, null, 2));
   
   return posts[index];
 }
@@ -96,6 +97,6 @@ export async function deletePost(slug: string): Promise<boolean> {
   
   if (filteredPosts.length === posts.length) return false;
   
-  await fs.writeFile(postsFile, JSON.stringify(filteredPosts, null, 2));
+  await fs.writeFile(DATA_PATH, JSON.stringify(filteredPosts, null, 2));
   return true;
 } 
