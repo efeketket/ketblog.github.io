@@ -99,9 +99,9 @@ export default function BlogPost({ post }: BlogPostProps) {
             <Image
               src={post.author.avatar || '/images/default-avatar.png'}
               alt={post.author.name}
-              width={24}
-              height={24}
-              className="object-cover"
+              width={32}
+              height={32}
+              className="object-cover w-full h-full"
             />
           </div>
           <span>{post.author.name}</span>
